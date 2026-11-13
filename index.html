@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTATO Anime Studio</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#101426;color:white;
+ font-family:Arial,sans-serif
+}
+header{
+ background:#202b49;padding:18px;
+ text-align:center;border-bottom:2px solid #54cfff
+}
+header h1{color:#65d5ff;margin:5px}
+main{padding:14px;max-width:650px;margin:auto}
+.panel{
+ background:#202b49;padding:15px;
+ border-radius:14px;margin:14px 0
+}
+.stage{
+ height:350px;border-radius:15px;
+ background:linear-gradient(#87ceeb 65%,#70a56c 65%);
+ display:flex;align-items:flex-end;
+ justify-content:center;overflow:hidden;
+ position:relative
+}
+.character{
+ width:150px;height:270px;
+ position:relative;animation:breathe 2s infinite;
+ transition:transform .5s
+}
+@keyframes breathe{
+ 50%{translate:0 -5px}
+}
+.head{
+ position:absolute;top:5px;left:34px;
+ width:82px;height:100px;
+ background:#b97851;border:3px solid #25202b;
+ border-radius:45% 45% 42% 42%
+}
+.hair{
+ position:absolute;top:-8px;left:-3px;
+ width:82px;height:42px;background:#17131d;
+ border-radius:50% 50% 20% 20%
+}
+.eye{
+ position:absolute;top:49px;width:12px;height:15px;
+ background:#17131d;border-radius:50%
+}
+.eye.one{left:18px}.eye.two{right:18px}
+.mouth{
+ position:absolute;bottom:18px;left:31px;
+ width:16px;height:5px;background:#722e38;
+ border-radius:50%
+}
+.talking .mouth{animation:talk .16s infinite alternate}
+@keyframes talk{to{height:17px;width:19px}}
+.body{
+ position:absolute;top:105px;left:17px;
+ width:116px;height:130px;
+ background:#263c72;border-radius:25px 25px 8px 8px
+}
+.arm{
+ position:absolute;top:117px;width:24px;height:95px;
+ background:#b97851;border-radius:20px
+}
+.arm.one{left:2px;transform:rotate(12deg)}
+.arm.two{right:2px;transform:rotate(-12deg)}
+.leg{
+ position:absolute;top:225px;width:37px;height:43px;
+ background:#263c72;border-radius:6px
+}
+.leg.one{left:35px}.leg.two{right:35px}
+button,select{
+ width:100%;padding:13px;margin-top:9px;
+ border:0;border-radius:9px;font-size:15px;
+ font-weight:bold
+}
+button{background:#57cafa;color:#101426}
+button.dark{background:#394969;color:white}
+select,textarea{
+ background:#fff;color:#222;padding:12px;
+ border-radius:9px;width:100%;margin-top:8px
+}
+textarea{height:85px;font-size:16px}
+small{color:#a9dfff}
+</style>
+</head>
+<body>
+
+<header>
+<h1>BTATO Anime Studio</h1>
+استوديو صناعة الأنمي والكرتون 🎬
+</header>
+
+<main>
+
+<div class="panel">
+<h3>🎭 مسرح الشخصيات</h3>
+<div class="stage" id="stage">
+<div class="character" id="character">
+<div class="head">
+<div class="hair"></div>
+<div class="eye one"></div>
+<div class="eye two"></div>
+<div class="mouth"></div>
+</div>
+<div class="body"></div>
+<div class="arm one"></div>
+<div class="arm two"></div>
+<div class="leg one"></div>
+<div class="leg two"></div>
+</div>
+</div>
+</div>
+
+<div class="panel">
+<h3>👤 اختيار الشخصية</h3>
+<select id="person" onchange="changePerson()">
+<option value="ميتو">ميتو</option>
+<option value="ناياتو">ناياتو</option>
+</select>
+</div>
+
+<div class="panel">
+<h3>🌆 خلفية المشهد</h3>
+<select id="background" onchange="changeBackground()">
+<option value="sky">حديقة</option>
+<option value="room">غرفة</option>
+<option value="night">ليل</option>
+</select>
+</div>
+
+<div class="panel">
+<h3>🗣️ حوار الشخصية</h3>
+<textarea id="dialogue" placeholder="اكتب كلام ميتو أو ناياتو هنا..."></textarea>
+<button onclick="speak()">🔊 تشغيل الحوار</button>
+<button class="dark" onclick="stopSpeech()">إيقاف الصوت</button>
+</div>
+
+<div class="panel">
+<h3>🎙️ تسجيل صوتك</h3>
+<button onclick="startRecording()">🔴 ابدأ التسجيل</button>
+<button class="dark" onclick="stopRecording()">⏹️ إيقاف التسجيل</button>
+<p id="status">جاهز للتسجيل</p>
+<audio id="audio" controls style="width:100%"></audio>
+<button onclick="downloadAudio()">حفظ التسجيل</button>
+</div>
+
+<div class="panel">
+<h3>🎬 تحريك الشخصية</h3>
+<button onclick="moveCharacter()">تحريك الشخصية</button>
+<button class="dark" onclick="resetCharacter()">إعادة الحركة</button>
+</div>
+
+<div class="panel">
+<h3>✨ BTATO Anime Studio</h3>
+<small>النسخة التجريبية الأولى - تطوير مستمر</small>
+</div>
+
+</main>
+
+<script>
+const character=document.getElementById("character");
+let recorder=null;
+let chunks=[];
+let audioURL=null;
+
+function changePerson(){
+ let name=document.getElementById("person").value;
+ document.querySelector("header h1").textContent=
+ "BTATO Anime Studio - "+name;
+}
+
+function changeBackground(){
+ let value=document.getElementById("background").value;
+ let colors={
+ sky:"linear-gradient(#87ceeb 65%,#70a56c 65%)",
+ room:"linear-gradient(#d9b68b 65%,#815d48 65%)",
+ night:"linear-gradient(#101a48 65%,#303a50 65%)"
+ };
+ document.getElementById("stage").style.background=colors[value];
+}
+
+function speak(){
+ let text=document.getElementById("dialogue").value;
+ if(!text.trim())return alert("اكتب الحوار أولاً");
+ if(!window.speechSynthesis)return alert("الصوت غير مدعوم");
+ speechSynthesis.cancel();
+ let voice=new SpeechSynthesisUtterance(text);
+ voice.lang="ar-SA";
+ voice.rate=0.9;
+ voice.onstart=()=>character.classList.add("talking");
+ voice.onend=()=>character.classList.remove("talking");
+ voice.onerror=()=>character.classList.remove("talking");
+ speechSynthesis.speak(voice);
+}
+
+function stopSpeech(){
+ speechSynthesis.cancel();
+ character.classList.remove("talking");
+}
+
+async function startRecording(){
+ try{
+  let stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  chunks=[];
+  recorder=new MediaRecorder(stream);
+  recorder.ondataavailable=e=>chunks.push(e.data);
+  recorder.onstop=()=>{
+   let blob=new Blob(chunks,{type:recorder.mimeType});
+   audioURL=URL.createObjectURL(blob);
+   document.getElementById("audio").src=audioURL;
+   document.getElementById("status").textContent="تم التسجيل بنجاح";
+   stream.getTracks().forEach(t=>t.stop());
+  };
+  recorder.start();
+  document.getElementById("status").textContent="جاري التسجيل...";
+ }catch(e){
+  alert("اسمح للمتصفح باستخدام الميكروفون");
+ }
+}
+
+function stopRecording(){
+ if(recorder && recorder.state==="recording")recorder.stop();
+}
+
+function downloadAudio(){
+ if(!audioURL)return alert("سجل صوتك أولاً");
+ let a=document.createElement("a");
+ a.href=audioURL;
+ a.download="BTATO-Voice.webm";
+ a.click();
+}
+
+function moveCharacter(){
+ character.animate([
+  {transform:"translateX(0)"},
+  {transform:"translateX(90px)"},
+  {transform:"translateX(-90px)"},
+  {transform:"translateX(0)"}
+ ],{duration:1800});
+}
+
+function resetCharacter(){
+ character.style.transform="translateX(0)";
+}
+</script>
+</body>
+</html>
